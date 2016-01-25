@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE Map[]>
+<Map
+srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over"
+>
+
+<Parameters>
+  <Parameter name="attribution"><![CDATA[investigate-gpx]]></Parameter>
+  <Parameter name="center">{{center}}</Parameter>
+<!--  <Parameter name="bounds">{{bounds}}</Parameter> -->
+  <Parameter name="description"><![CDATA[investigate-gpx]]></Parameter>
+  <Parameter name="format">pbf</Parameter>
+  <Parameter name="json"><![CDATA[{"vector_layers":[{"id":"{{basename}}_tracks","description":"","fields":{"name":"String","cmt":"String","desc":"String","src":"String","link1_href":"String","link1_text":"String","link1_type":"String","link2_href":"String","link2_text":"String","link2_type":"String","number":"Number","type":"String"}},{"id":"{{basename}}_track_points","description":"","fields":{"track_fid":"Number","track_seg_id":"Number","track_seg_point_id":"Number","ele":"Number","time":"Object","magvar":"Number","geoidheight":"Number","name":"String","cmt":"String","desc":"String","src":"String","link1_href":"String","link1_text":"String","link1_type":"String","link2_href":"String","link2_text":"String","link2_type":"String","sym":"String","type":"String","fix":"String","sat":"Number","hdop":"Number","vdop":"Number","pdop":"Number","ageofdgpsdata":"Number","dgpsid":"Number"}}]}]]></Parameter>
+  <Parameter name="maxzoom">16</Parameter>
+  <Parameter name="minzoom">0</Parameter>
+  <Parameter name="name"><![CDATA[investigate-gpx]]></Parameter>
+</Parameters>
+
+
+<Layer name="{{filename}}_tracks"
+  buffer-size="8"
+  srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs">
+
+    <Datasource>
+       <Parameter name="file"><![CDATA[{{filename}}]]></Parameter>
+       <Parameter name="layer"><![CDATA[tracks]]></Parameter>
+       <Parameter name="type"><![CDATA[ogr]]></Parameter>
+    </Datasource>
+  </Layer>
+
+</Map>
