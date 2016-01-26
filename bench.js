@@ -1,5 +1,6 @@
 var minimist = require('minimist');
 var mkdirp = require('mkdirp');
+var rimraf = require('rimraf');
 var path = require('path');
 var fs = require('fs');
 var bytes = require('bytes');
@@ -18,7 +19,8 @@ function usage() {
         '  --maxzoom=N',
         '  --bounds=minx,miny,maxx,maxy',
         '  --write-to (write tiles to directory)',
-        '  --verbose (print tiles as they are finished rendering)'
+        '  --verbose (print tiles as they are finished rendering)',
+		'  --concurrency=N (source read concurrency)'
         ].join('\n'));
     process.exit(1);
 }
@@ -26,7 +28,7 @@ function usage() {
 var argv = minimist(process.argv.slice(2));
 
 if (argv._.length < 2) {
-    return usage();
+	return usage();
 }
 
 if (argv.threadpool) {
@@ -61,17 +63,22 @@ var Bridge = require(path.join(submodules_directory,'tilelive-bridge'));
 
 File.registerProtocols(tilelive);
 Bridge.registerProtocols(tilelive);
-var source = 'bridge://'+xml_map_path;
+var source = 'bridge://' + xml_map_path;
+
 
 var mercator = new(require('sphericalmercator'))()
 
 var sink;
 var start;
 var tile_count = 0;
+var tiles_transferred = 0;
 
 if (argv.output) {
+	console.log('deleting existing directory:', argv.output);
+	rimraf.sync(path.join(__dirname, argv.output));
     mkdirp.sync(argv.output)
-    sink = 'file://' + path.join(__dirname,argv.output+'?filetype=pbf');
+	var filetype = -1 === xml_map_path.indexOf('style') ? 'pbf' : 'webp';
+    sink = 'file://' + path.join(__dirname, argv.output+'?filetype=' + filetype);
 } else {
     sink = 'noop://';
 
@@ -113,10 +120,12 @@ if (argv.output) {
 }
 
 function report(stats, p) {
+	tiles_transferred = p.transferred;
     console.log(p.percentage.toFixed(1) + '%, done:' + stats.done + ', skipped:' + stats.skipped + ', transferred:', p.transferred + ', remaining: ' + p.remaining);
     var now = new Date().getTime() / 1000;
     var elapsed = now - start;
-    console.log('       elapsed[sec]: ' + elapsed.toFixed(1) + ', tiles put: ' + tile_count + ', overall tiles per second: ' + (tile_count/elapsed).toFixed(1));
+	var overall = 0 !== tile_count ? (tile_count / elapsed).toFixed(1) : (tiles_transferred / elapsed).toFixed(1);
+    console.log('       elapsed[sec]: ' + elapsed.toFixed(1) + ', tiles put: ' + tile_count + ', overall tiles per second: ' + overall);
 }
 
 tilelive.info(source, function(err, info) {
@@ -129,6 +138,10 @@ tilelive.info(source, function(err, info) {
     options.maxzoom = argv.maxzoom || info.maxzoom;
     options.bounds = argv.bounds || info.bounds;
     options.type = argv.scheme || 'pyramid';
+	//options.scheme = argv.scheme || 'pyramid';
+	options.concurrency = argv.concurrency || Math.ceil(require('os').cpus().length * 16);;
+
+
     //if (!argv.noop) { options.progress = report; }
     options.progress = report;
 	//console.log('info:', JSON.stringify(info,null, '  '));
@@ -171,6 +184,10 @@ tilelive.info(source, function(err, info) {
             } else {
                 console.log('\n\nTODO: how to count tiles when *NOT* using "noop" sink!!!\n\n');
             }
+			if (tiles_transferred > 0) {
+                console.log('Result -> tiles transferred: ' + tiles_transferred);
+                console.log('Result -> tiles transferred per second: ' + tiles_transferred / elapsed);
+			}
             clearInterval(memcheck);
             console.log('Result -> max_rss[MB]: ', (stats.max_rss/(1024*1024)).toFixed(1));
             console.log('Result -> max_heap[MB]: ', (stats.max_heap/(1024*1024)).toFixed(1));

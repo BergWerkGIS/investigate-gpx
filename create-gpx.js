@@ -5,11 +5,12 @@ var gdal = require('gdal');
 
 var argv = minimist(process.argv.slice(2));
 if (argv._.length < 1) {
-	console.log('node create-gpx.js <out.gpx> --bounds=lng,lat,lng,lat --nr_of_points=<INT>');
+	console.log('node create-gpx.js <out.gpx> --bounds=lng,lat,lng,lat --nr_of_points=<INT> --decimals=<INT>');
 	process.exit(1);
 }
 var out_file = argv._[0];
 var nr_of_points = argv.nr_of_points || 700;
+var decimals = argv.decimals || 6;
 var bounds = argv.bounds ? argv.bounds.split(',').map(Number): [-180,-85.05112877980659,180,85.05112877980659];
 
 console.log('creating', out_file, 'with', nr_of_points, 'points');
@@ -27,7 +28,10 @@ var delta_lng = (bounds[2] - lng) / nr_of_points;
 var trk = new gdal.LineString();
 
 for (var i = 0; i <= nr_of_points; i++){
-	trk.points.add(lng, lat);
+	trk.points.add(
+		1*(lng.toFixed(decimals)),
+		1*(lat.toFixed(decimals))
+	);
 	lat += delta_lat;
 	lng += delta_lng;
 }

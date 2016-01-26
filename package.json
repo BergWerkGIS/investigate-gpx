@@ -20,7 +20,8 @@
         "tilelive-bridge": "^2.2.3",
         "bytes": "^2.2.0",
         "minimist": "^1.2.0",
-		"mkdirp": "^0.5.1"
+		"mkdirp": "^0.5.1",
+		"rimraf": "^2.5.1"
     },
     "scripts": {
         "postinstall": "npm dedupe"
