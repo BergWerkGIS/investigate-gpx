@@ -40,7 +40,7 @@ server.on('request', function (req, res) {
 });
 
 server.on('listening', function(){
-	console.log('listening on', port);
+	console.log('open browser at http://localhost:' + port + '/show-tiles.html');
 });
 
 server.on('error', function(err){
