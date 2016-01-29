@@ -19,6 +19,8 @@ console.log('bounds:', bounds);
 var wgs84 = gdal.SpatialReference.fromEPSG(4326);
 var out_ds = gdal.open(out_file, 'w', 'GPX');
 var lyr_trks = out_ds.layers.create('blabla', wgs84, gdal.wkbLineString, ['FORCE_GPX_TRACK=YES']);
+lyr_trks.fields.add(new gdal.FieldDefn('name', gdal.OFTString));
+lyr_trks.fields.add(new gdal.FieldDefn('desc', gdal.OFTString));
 
 var lat = bounds[1];
 var lng = bounds[0];
@@ -38,6 +40,8 @@ for (var i = 0; i <= nr_of_points; i++){
 
 var feat = new gdal.Feature(lyr_trks);
 feat.setGeometry(trk);
+feat.fields.set('name', 'this is the name of the layer');
+feat.fields.set('desc', 'this is the description');
 lyr_trks.features.add(feat);
 
 lyr_trks.flush();
