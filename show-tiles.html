@@ -1,25 +1,37 @@
-
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title>bench mapnik</title>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="/leaflet/leaflet.css" />
 	<style>
-		body {padding: 0; margin: 0;}
-		html, body, #map {height: 100%;	width: 100%; }
-		.leaflet-tile { border: solid red 1px; }
+		body {
+			padding: 0;
+			margin: 0;
+		}
+
+		html,
+		body,
+		#map {
+			height: 100%;
+			width: 100%;
+		}
+
+		.leaflet-tile {
+			border: solid red 1px;
+		}
 	</style>
 </head>
+
 <body>
 	<div id="map"></div>
 
 	<script src="/leaflet/leaflet.js"></script>
 	<script src="/leaflet/TileLayer.GeoJSON.js"></script>
 	<script>
-
-		var map = L.map('map').setView([47.7, 13], 8);
+		var map = L.map('map').setView([37.783468766829, -122.50579833984375], 11);
 
 		L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibHIxayIsImEiOiJ0ZDVoZ2FVIn0.VvDeZC2BzGINcCxObpfesw', {
 			maxZoom: 18,
@@ -35,12 +47,19 @@
 		}).addTo(map);
 
 		var geojsonURL = '/tiles/{z}/{x}/{y}.pbf';
-		var geojsonTileLayer = new L.TileLayer.GeoJSON(geojsonURL, {
-			clipTiles: true,
-			unique: function (feature) {
-				return feature.id;
+		var geojsonTileLayer = new L.TileLayer.GeoJSON(
+			geojsonURL
+			, {
+				clipTiles: true,
+				unique: function (feature) {
+					return feature.id;
+				}
+			}, {
+				style:{
+					weight:0.5
+				}
 			}
-		});
+		);
 		map.addLayer(geojsonTileLayer);
 
 		map.on('moveend', function(ev){
@@ -48,4 +67,5 @@
 		});
 	</script>
 </body>
+
 </html>

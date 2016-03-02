@@ -11,7 +11,7 @@ function usage() {
 		'usage:',
 		'',
 		'  Write tiles to directory:',
-		'    node test.js <path to xml> <path to dir with mapnik+tilelive-bridge>',
+		'    node bench.js <path to xml> <path to dir with mapnik+tilelive-bridge>',
 		'',
 		'options:',
 		'  --threadpool=N',
@@ -146,7 +146,7 @@ tilelive.info(source, function(err, info) {
 	options.maxzoom = argv.maxzoom || info.maxzoom;
 	options.bounds = argv.bounds || info.bounds;
 	options.type = argv.scheme || 'pyramid';
-	//options.scheme = argv.scheme || 'pyramid';
+	//options.type = argv.scheme || 'scanline';
 	options.concurrency = argv.concurrency || Math.ceil(require('os').cpus().length * 16);
 
 

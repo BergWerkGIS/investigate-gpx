@@ -5,6 +5,7 @@ var fs = require('fs');
 var Pbf = require('pbf');
 var vt = require('vector-tile');
 var zlib = require('zlib');
+var mapnik = require('mapnik');
 
 var server = http.createServer();
 var port = process.argv[2] || 666;
@@ -54,53 +55,43 @@ server.on('request', function (req, res) {
 				return;
 			});
 		} else {
-
-
-			//https://github.com/mapbox/mapnik-internal/blob/a4e328ae17f1897a0c61bb85a28fbc9391e46f5d/benchmarks/node-mapnik/vtile-memory-test/vtile-mem.js#L17-L29
-			//pbf
-			//		try {
 			console.log('req.url:', req.url);
 			var zxy = req.url.match(/\/(\d+)\/(\d+)\/(\d+)/);
-			console.log(zxy[2], zxy[3], zxy[1]);
+			var z = +zxy[1];
+			var x = +zxy[2];
+			var y = +zxy[3]
+			//console.log(z, x, y);
 
-			fs.readFile(filename, 'binary', function (err, file) {
-				zlib.inflate(file, function (err, data) {
-					console.log(data);
-					var pbf = new Pbf(new Pbf(data));
-					var tile = new vt.VectorTile(pbf);
-					console.log('Object.keys(tile.layers):', tile.layers);
-					console.log('Object.keys(tile.layers):', Object.keys(tile.layers));
-					//console.log('tile:\n', JSON.stringify(tile, null, '   '));
-					console.log('tile:\n', tile);
-					var layers = Object.keys(tile.layers);
-					if (!Array.isArray(layers)) { layers = [layers]; }
-					var collection = { type: 'FeatureCollection', features: [] };
-					layers.forEach(function (lyr_name) {
-						var lyr = tile.layers[lyr_name];
-						for (var idx = 0; idx < lyr.length; idx++) {
-							var feat = lyr.feature(idx).toGeoJSON(
-								zxy[2],
-								zxy[3],
-								zxy[1]
-								);
-							feat.coordinates = lyr.feature(idx).loadGeometry();
-							collection.features.push(feat);
-						}
+			fs.readFile(filename, function (err, file) {
+				if (err) { throw err; }
+				zlib.gunzip(file, function (err, data) {
+					if (err) { throw err; }
+					var tile = new mapnik.VectorTile(z, x, y, { buffer_size: 0, simplify_distance: 32 });
+					tile.setData(file, function (err) {
+						if (err) { throw err; }
+						var collection = { type: 'FeatureCollection', features: [] };
+						tile.paintedLayers().forEach(function (lyr_name) {
+							//already returns a featurecollection, e.g.:
+							//{"type":"FeatureCollection","name":"b000","features":[{"type":"Feature","id":1,"geometry"
+							//console.log(tile.toGeoJSON(lyr_name).features);
+							var feats = JSON.parse(tile.toGeoJSON(lyr_name)).features;
+							feats.forEach(function (feat) {
+								collection.features.push(feat);
+							});
+						})
+
+						// //returns features with tile coordinates
+						// tile.toJSON().forEach(function (lyr) {
+						// 	console.log(lyr.name);
+						// 	collection.features.push(lyr.features);
+						// });
+
+						res.writeHead(200, { "Content-Type": "application/vnd.geo+json" });
+						res.write(JSON.stringify(collection));
+						res.end();
 					});
-					res.writeHead(200, { "Content-Type": "application/vnd.geo+json" });
-					res.write(JSON.stringify(collection));
-					console.log('res.end');
-					res.end();
 				});
 			});
-
-
-			// }
-			// catch (ex) {
-			// 	console.log('\n', req.url, '\n', ex, '\n');
-			// 	res.writeHead(500, { "Content-Type": "text/plain" });
-			// 	res.write(uri, '\n', ex, '\n');
-			// }
 		}
 	});
 });
