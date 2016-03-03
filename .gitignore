@@ -6,6 +6,7 @@ node.exe
 *.tm2
 tiles
 .vscode
+typings
 
 # Logs
 logs

@@ -60,21 +60,24 @@ server.on('request', function (req, res) {
 			var z = +zxy[1];
 			var x = +zxy[2];
 			var y = +zxy[3]
-			//console.log(z, x, y);
+			var simplify_distance = 100.0;
 
 			fs.readFile(filename, function (err, file) {
 				if (err) { throw err; }
 				zlib.gunzip(file, function (err, data) {
 					if (err) { throw err; }
-					var tile = new mapnik.VectorTile(z, x, y, { buffer_size: 0, simplify_distance: 32 });
+					var tile = new mapnik.VectorTile(z, x, y, { buffer_size: 0 });
 					tile.setData(file, function (err) {
 						if (err) { throw err; }
+						var t2 = new mapnik.VectorTile(z, x, y, { buffer_size: 0 });
+						if (z > 15) { simplify_distance = 0.0; }
+						t2.composite([tile], { simplify_distance: simplify_distance });
 						var collection = { type: 'FeatureCollection', features: [] };
-						tile.paintedLayers().forEach(function (lyr_name) {
+						t2.paintedLayers().forEach(function (lyr_name) {
 							//already returns a featurecollection, e.g.:
 							//{"type":"FeatureCollection","name":"b000","features":[{"type":"Feature","id":1,"geometry"
 							//console.log(tile.toGeoJSON(lyr_name).features);
-							var feats = JSON.parse(tile.toGeoJSON(lyr_name)).features;
+							var feats = JSON.parse(t2.toGeoJSON(lyr_name)).features;
 							feats.forEach(function (feat) {
 								collection.features.push(feat);
 							});
