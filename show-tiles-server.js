@@ -60,7 +60,7 @@ server.on('request', function (req, res) {
 			var z = +zxy[1];
 			var x = +zxy[2];
 			var y = +zxy[3]
-			var simplify_distance = 100.0;
+			var simplify_distance = 10.0;
 
 			fs.readFile(filename, function (err, file) {
 				if (err) { throw err; }
@@ -70,8 +70,8 @@ server.on('request', function (req, res) {
 					tile.setData(file, function (err) {
 						if (err) { throw err; }
 						var t2 = new mapnik.VectorTile(z, x, y, { buffer_size: 0 });
-						if (z > 15) { simplify_distance = 0.0; }
-						t2.composite([tile], { simplify_distance: simplify_distance });
+						//if (z > 15) { simplify_distance = 0.0; }
+						t2.composite([tile], {reencode:true, simplify_distance: simplify_distance });
 						var collection = { type: 'FeatureCollection', features: [] };
 						t2.paintedLayers().forEach(function (lyr_name) {
 							//already returns a featurecollection, e.g.:
